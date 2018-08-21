@@ -103,9 +103,9 @@ public class PatternMatching<TInput> {
 
     private final static class MatchingRule<T, R> {
         private final Class<? super T> type;
-        private final Function<? super T, R> operation;
+        private final Function<T, R> operation;
 
-        MatchingRule(Class<? super T> type, Function<? super T, R> operation) {
+        MatchingRule(Class<? super T> type, Function<T, R> operation) {
             this.type = type;
             this.operation = operation;
         }
