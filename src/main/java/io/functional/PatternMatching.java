@@ -5,9 +5,9 @@ import java.util.function.Function;
 public class PatternMatching<TInput> {
 
     private final TInput input;
-    private final MatchingRule<?> matchingRule;
+    private final MatchingRule<TInput, ?> matchingRule;
 
-    private PatternMatching(TInput input, MatchingRule<?> matchingRule) {
+    private PatternMatching(TInput input, MatchingRule<TInput, ?> matchingRule) {
         this.input = input;
         this.matchingRule = matchingRule;
     }
@@ -101,11 +101,11 @@ public class PatternMatching<TInput> {
         }
     }
 
-    private final class MatchingRule<R> {
-        private final Class<? super TInput> type;
-        private final Function<? super TInput, R> operation;
+    private final static class MatchingRule<T, R> {
+        private final Class<? super T> type;
+        private final Function<? super T, R> operation;
 
-        MatchingRule(Class<? super TInput> type, Function<? super TInput, R> operation) {
+        MatchingRule(Class<? super T> type, Function<? super T, R> operation) {
             this.type = type;
             this.operation = operation;
         }
