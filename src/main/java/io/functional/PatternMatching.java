@@ -38,7 +38,7 @@ public class PatternMatching<TInput> {
         R execute();
     }
 
-    private class DelegateExecuteOperation<T, R> implements ExecuteOperation<T, R> {
+    private final class DelegateExecuteOperation<T, R> implements ExecuteOperation<T, R> {
 
         private final PatternMatching<T> patternMatching;
 
@@ -58,7 +58,7 @@ public class PatternMatching<TInput> {
         }
     }
 
-    private class MatchFound implements TypeChecking<TInput> {
+    private final class MatchFound implements TypeChecking<TInput> {
 
         private final PatternMatching<TInput> patternMatching;
         private final Class<? super TInput> type;
@@ -84,7 +84,7 @@ public class PatternMatching<TInput> {
         }
     }
 
-    private class NoMatch implements TypeChecking<TInput> {
+    private final class NoMatch implements TypeChecking<TInput> {
 
         private final PatternMatching<TInput> patternMatching;
 
@@ -98,7 +98,7 @@ public class PatternMatching<TInput> {
         }
     }
 
-    private class MatchingRule<R> {
+    private final class MatchingRule<R> {
         private final Class<? super TInput> type;
         private final Function<? super TInput, R> operation;
 
