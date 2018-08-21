@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'jacoco'
 
 repositories {
@@ -8,9 +9,13 @@ repositories {
 sourceCompatibility = "1.8"
 
 dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.10'
+
     testCompile 'junit:junit:4.12',
-            'org.assertj:assertj-core:3.11.0'
+            'org.assertj:assertj-core:3.11.0',
+            'org.spockframework:spock-core:1.1-groovy-2.4'
 }
+
 
 jacocoTestReport {
     reports {
