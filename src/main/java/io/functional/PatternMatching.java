@@ -7,17 +7,13 @@ public class PatternMatching<TInput> {
     private final TInput input;
     private final MatchingRule<?> matchingRule;
 
-    private PatternMatching(TInput input) {
-        this(input, null);
-    }
-
     private PatternMatching(TInput input, MatchingRule<?> matchingRule) {
         this.input = input;
         this.matchingRule = matchingRule;
     }
 
     public static <TInput> PatternMatching<TInput> when(TInput input) {
-        return new PatternMatching<>(input);
+        return new PatternMatching<>(input, null);
     }
 
     public TypeChecking<TInput> is(Class<? super TInput> type) {
@@ -40,6 +36,7 @@ public class PatternMatching<TInput> {
 
     public interface ExecuteOperation<T, R> {
         TypeChecking<T> is(Class<? super T> type);
+
         R execute();
     }
 
@@ -74,13 +71,21 @@ public class PatternMatching<TInput> {
         @Override
         public <R> ExecuteOperation<TInput, R> thenReturn(Function<TInput, R> operation) {
 
-            if (matchingRule == null || matchingRule.type != type && noParentPresent(matchingRule)) {
-                MatchingRule<?> matchingRule = new MatchingRule<>(type, operation);
-                PatternMatching<TInput> patternMatching = new PatternMatching<>(input, matchingRule);
-                return new DelegateExecuteOperation<>(patternMatching);
-            }
+            return shouldAssignNewMatchingRule()
+                    ? new DelegateExecuteOperation<>(patternMatchingWithNewMatchingRule(operation))
+                    : new DelegateExecuteOperation<>(PatternMatching.this);
 
-            return new DelegateExecuteOperation<>(PatternMatching.this);
+        }
+
+        private <R> PatternMatching<TInput> patternMatchingWithNewMatchingRule(Function<TInput, R> operation) {
+            return new PatternMatching<>(
+                    input, new MatchingRule<>(type, operation)
+            );
+        }
+
+        private boolean shouldAssignNewMatchingRule() {
+            return matchingRule == null ||
+                    matchingRule.type != type && noParentPresent(matchingRule);
         }
 
         private boolean noParentPresent(MatchingRule<?> matchingRule) {
