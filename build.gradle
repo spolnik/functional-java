@@ -1,10 +1,22 @@
 apply plugin: 'java'
+apply plugin: 'jacoco'
 
 repositories {
     jcenter()
 }
 
+sourceCompatibility = "1.8"
+
 dependencies {
     testCompile 'junit:junit:4.12',
             'org.assertj:assertj-core:3.11.0'
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+check.dependsOn jacocoTestReport
