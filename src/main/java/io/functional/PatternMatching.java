@@ -5,10 +5,15 @@ import java.util.function.Function;
 public class PatternMatching<TInput> {
 
     private final TInput input;
-    private MatchingRule<?> matchingRule;
+    private final MatchingRule<?> matchingRule;
 
     private PatternMatching(TInput input) {
+        this(input, null);
+    }
+
+    private PatternMatching(TInput input, MatchingRule<?> matchingRule) {
         this.input = input;
+        this.matchingRule = matchingRule;
     }
 
     public static <TInput> PatternMatching<TInput> when(TInput input) {
@@ -17,8 +22,8 @@ public class PatternMatching<TInput> {
 
     public TypeChecking<TInput> is(Class<? super TInput> type) {
         return type.isAssignableFrom(input.getClass())
-                ? new MatchFound(this, type)
-                : new NoMatch(this);
+                ? new MatchFound(type)
+                : new NoMatch();
     }
 
     private Object execute() {
@@ -38,7 +43,7 @@ public class PatternMatching<TInput> {
         R execute();
     }
 
-    private final class DelegateExecuteOperation<T, R> implements ExecuteOperation<T, R> {
+    private final static class DelegateExecuteOperation<T, R> implements ExecuteOperation<T, R> {
 
         private final PatternMatching<T> patternMatching;
 
@@ -60,23 +65,22 @@ public class PatternMatching<TInput> {
 
     private final class MatchFound implements TypeChecking<TInput> {
 
-        private final PatternMatching<TInput> patternMatching;
         private final Class<? super TInput> type;
 
-        MatchFound(PatternMatching<TInput> patternMatching, Class<? super TInput> type) {
-            this.patternMatching = patternMatching;
+        MatchFound(Class<? super TInput> type) {
             this.type = type;
         }
 
         @Override
         public <R> ExecuteOperation<TInput, R> thenReturn(Function<TInput, R> operation) {
-            if (matchingRule == null) {
-                matchingRule = new MatchingRule<>(type, operation);
-            } else if (matchingRule.type != type && noParentPresent(matchingRule)) {
-                matchingRule = new MatchingRule<>(type, operation);
+
+            if (matchingRule == null || matchingRule.type != type && noParentPresent(matchingRule)) {
+                MatchingRule<?> matchingRule = new MatchingRule<>(type, operation);
+                PatternMatching<TInput> patternMatching = new PatternMatching<>(input, matchingRule);
+                return new DelegateExecuteOperation<>(patternMatching);
             }
 
-            return new DelegateExecuteOperation<>(patternMatching);
+            return new DelegateExecuteOperation<>(PatternMatching.this);
         }
 
         private boolean noParentPresent(MatchingRule<?> matchingRule) {
@@ -86,15 +90,9 @@ public class PatternMatching<TInput> {
 
     private final class NoMatch implements TypeChecking<TInput> {
 
-        private final PatternMatching<TInput> patternMatching;
-
-        NoMatch(PatternMatching<TInput> patternMatching) {
-            this.patternMatching = patternMatching;
-        }
-
         @Override
         public <R> ExecuteOperation<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return new DelegateExecuteOperation<>(patternMatching);
+            return new DelegateExecuteOperation<>(PatternMatching.this);
         }
     }
 
