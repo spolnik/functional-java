@@ -85,11 +85,11 @@ public class PatternMatching<TInput> {
 
         private boolean shouldAssignNewMatchingRule() {
             return matchingRule == null ||
-                    matchingRule.type != type && noParentPresent(matchingRule);
+                    matchingRule.type != type && isParentOf(matchingRule.type);
         }
 
-        private boolean noParentPresent(MatchingRule<?> matchingRule) {
-            return type.isAssignableFrom(matchingRule.type);
+        private boolean isParentOf(Class<? super TInput> currentType) {
+            return type.isAssignableFrom(currentType);
         }
     }
 
