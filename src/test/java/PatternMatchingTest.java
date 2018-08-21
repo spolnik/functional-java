@@ -36,7 +36,7 @@ public class PatternMatchingTest {
     }
 
     class A {}
-    class B extends A {}
+    private class B extends A {}
 
     @Test
     public void match_parent_class_firstly_as_more_generic() {
@@ -56,5 +56,12 @@ public class PatternMatchingTest {
                 .execute();
 
         assertThat(result).isEqualTo("A");
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void throws_exception_if_execute_run_without_any_rule_specified() {
+        PatternMatching.when("abc")
+                .is(Object.class).thenReturn(null)
+                .execute();
     }
 }

@@ -3,7 +3,9 @@ package io.functional;
 import java.util.function.Function;
 
 public class PatternMatching<TInput> {
+
     private final TInput input;
+    private MatchingRule<?> matchingRule;
 
     private PatternMatching(TInput input) {
         this.input = input;
@@ -14,17 +16,21 @@ public class PatternMatching<TInput> {
     }
 
     public TypeChecking<TInput> is(Class<? super TInput> type) {
-        return type.isAssignableFrom(input.getClass()) ?
-                new MatchFound(this, type)
+        return type.isAssignableFrom(input.getClass())
+                ? new MatchFound(this, type)
                 : new NoMatch(this);
     }
 
     private Object execute() {
-        return null;
+        if (matchingRule != null && matchingRule.operation != null) {
+            return matchingRule.operation.apply(input);
+        }
+
+        throw new UnsupportedOperationException("You have to define at least one correct rule");
     }
 
     public interface TypeChecking<T> {
-        <R> ExecuteOperation<T, R> thenReturn(Function<T, R> operation);
+        <TResult> ExecuteOperation<T, TResult> thenReturn(Function<T, TResult> operation);
     }
 
     public interface ExecuteOperation<T, R> {
@@ -64,7 +70,17 @@ public class PatternMatching<TInput> {
 
         @Override
         public <R> ExecuteOperation<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return null;
+            if (matchingRule == null) {
+                matchingRule = new MatchingRule<>(type, operation);
+            } else if (matchingRule.type != type && noParentPresent(matchingRule)) {
+                matchingRule = new MatchingRule<>(type, operation);
+            }
+
+            return new DelegateExecuteOperation<>(patternMatching);
+        }
+
+        private boolean noParentPresent(MatchingRule<?> matchingRule) {
+            return type.isAssignableFrom(matchingRule.type);
         }
     }
 
@@ -78,11 +94,17 @@ public class PatternMatching<TInput> {
 
         @Override
         public <R> ExecuteOperation<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return null;
+            return new DelegateExecuteOperation<>(patternMatching);
         }
     }
 
-    private class MatchingRule<T, R> {
+    private class MatchingRule<R> {
+        private final Class<? super TInput> type;
+        private final Function<? super TInput, R> operation;
 
+        MatchingRule(Class<? super TInput> type, Function<? super TInput, R> operation) {
+            this.type = type;
+            this.operation = operation;
+        }
     }
 }
