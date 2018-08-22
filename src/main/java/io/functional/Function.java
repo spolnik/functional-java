@@ -1,7 +1,7 @@
 package io.functional;
 
-public interface Function<T, U> {
-    U apply(T arg);
+public interface Function<T, R> {
+    R apply(T arg);
 
     static <T, U, V> Function<Function<U, V>,
                             Function<Function<T, U>,

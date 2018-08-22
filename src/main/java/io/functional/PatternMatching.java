@@ -4,41 +4,41 @@ import java.util.function.Function;
 
 public final class PatternMatching<TInput> {
     private final TInput input;
-    private final MatchingRule<TInput, ?> matchingRule;
+    private final MatchingRule<TInput, ?> bestMatchingRule;
 
     private PatternMatching(TInput input, MatchingRule<TInput, ?> matchingRule) {
         this.input = input;
-        this.matchingRule = matchingRule;
+        this.bestMatchingRule = matchingRule;
     }
 
     public static <TInput> PatternMatching<TInput> when(TInput input) {
         return new PatternMatching<>(input, new MatchingRule<>(null, null));
     }
 
-    public TypeChecking<TInput> is(Class<? super TInput> type) {
-        return type.isAssignableFrom(input.getClass())
-                ? new MatchFound(type)
+    public MatchingType<TInput> is(Class<? super TInput> matchingRuleType) {
+        return matchingRuleType.isAssignableFrom(input.getClass())
+                ? new MatchFound(matchingRuleType)
                 : new NoMatch();
     }
 
     private Object execute() {
-        if (matchingRule.isEmpty()) {
+        if (bestMatchingRule.isEmpty()) {
             throw new UnsupportedOperationException("You have to define at least one correct rule");
         }
 
-        return matchingRule.operation.apply(input);
+        return bestMatchingRule.operation.apply(input);
     }
 
-    public interface TypeChecking<T> {
-        <R> Operation<T, R> thenReturn(Function<T, R> operation);
+    public interface MatchingType<T> {
+        <R> Transform<T, R> thenReturn(Function<T, R> operation);
     }
 
-    public interface Operation<T, R> {
-        TypeChecking<T> is(Class<? super T> type);
+    public interface Transform<T, R> {
+        MatchingType<T> is(Class<? super T> type);
         R execute();
     }
 
-    private final class DelegateOperation<T, R> implements Operation<T, R> {
+    private final class DelegateOperation<T, R> implements Transform<T, R> {
         private final PatternMatching<T> patternMatching;
 
         private DelegateOperation(PatternMatching<T> patternMatching) {
@@ -46,7 +46,7 @@ public final class PatternMatching<TInput> {
         }
 
         @Override
-        public TypeChecking<T> is(Class<? super T> type) {
+        public MatchingType<T> is(Class<? super T> type) {
             return patternMatching.is(type);
         }
 
@@ -57,33 +57,33 @@ public final class PatternMatching<TInput> {
         }
     }
 
-    private final class MatchFound implements TypeChecking<TInput> {
-        private final Class<? super TInput> newType;
+    private final class MatchFound implements MatchingType<TInput> {
+        private final Class<? super TInput> nextMatchingRuleType;
 
-        MatchFound(Class<? super TInput> newType) {
-            this.newType = newType;
+        MatchFound(Class<? super TInput> nextMatchingRuleType) {
+            this.nextMatchingRuleType = nextMatchingRuleType;
         }
 
         @Override
-        public <R> Operation<TInput, R> thenReturn(Function<TInput, R> operation) {
+        public <R> Transform<TInput, R> thenReturn(Function<TInput, R> operation) {
             return shouldChooseNewMatchingRule()
-                    ? new DelegateOperation<>(new PatternMatching<>(input, new MatchingRule<>(newType, operation)))
+                    ? new DelegateOperation<>(new PatternMatching<>(input, new MatchingRule<>(nextMatchingRuleType, operation)))
                     : new DelegateOperation<>(PatternMatching.this);
         }
 
         private boolean shouldChooseNewMatchingRule() {
-            if (matchingRule.isEmpty()) {
+            if (bestMatchingRule.isEmpty()) {
                 return true;
             }
 
-            return matchingRule.currentType != newType &&
-                    newType.isAssignableFrom(matchingRule.currentType);
+            return bestMatchingRule.currentType != nextMatchingRuleType &&
+                    nextMatchingRuleType.isAssignableFrom(bestMatchingRule.currentType);
         }
     }
 
-    private final class NoMatch implements TypeChecking<TInput> {
+    private final class NoMatch implements MatchingType<TInput> {
         @Override
-        public <R> Operation<TInput, R> thenReturn(Function<TInput, R> operation) {
+        public <R> Transform<TInput, R> thenReturn(Function<TInput, R> operation) {
             return new DelegateOperation<>(PatternMatching.this);
         }
     }
