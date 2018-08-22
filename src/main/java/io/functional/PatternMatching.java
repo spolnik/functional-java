@@ -15,10 +15,10 @@ public final class PatternMatching<TInput> {
         return new PatternMatching<>(input, new NoMatchingRule<>());
     }
 
-    public MatchingType<TInput> is(Class<? super TInput> matchingRuleType) {
-        return matchingRuleType.isAssignableFrom(input.getClass()) &&
-                bestMatchingRule.isNotBetterMatchThan(matchingRuleType)
-                ? new BetterMatchFound(matchingRuleType)
+    public MatchingType<TInput> is(Class<? super TInput> nextMatchingRuleType) {
+        return nextMatchingRuleType.isAssignableFrom(input.getClass()) &&
+                bestMatchingRule.isNotBetterMatchThan(nextMatchingRuleType)
+                ? new BetterMatchFound(nextMatchingRuleType)
                 : new NoBetterMatch();
     }
 
@@ -32,7 +32,6 @@ public final class PatternMatching<TInput> {
 
     public interface MatchingChain<T, R> {
         MatchingType<T> is(Class<? super T> type);
-
         R execute();
     }
 
