@@ -24,4 +24,24 @@ public class FunctionTest {
 
         assertThat(result).isEqualTo(12);
     }
+
+    @Test
+    public void composes_functions_of_different_types() {
+        Function<Double, Integer> f = a -> (int) (a * 3);
+        Function<Long, Double> g = a -> a + 2.0;
+
+        Integer result = Function.<Long, Double, Integer>compose().apply(f).apply(g).apply(1L);
+
+        assertThat(result).isEqualTo(9);
+    }
+
+    @Test
+    public void chain_functions_of_different_types() {
+        Function<Double, Integer> f = a -> (int) (a * 3);
+        Function<Long, Double> g = a -> a + 2.0;
+
+        Integer result = Function.<Long, Double, Integer>andThen().apply(g).apply(f).apply(1L);
+
+        assertThat(result).isEqualTo(9);
+    }
 }
