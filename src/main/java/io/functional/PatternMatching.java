@@ -35,10 +35,10 @@ public final class PatternMatching<TInput> {
         R execute();
     }
 
-    private final class DelegateChain<T, R> implements MatchingChain<T, R> {
+    private final class DelegateChainTo<T, R> implements MatchingChain<T, R> {
         private final PatternMatching<T> patternMatching;
 
-        private DelegateChain(PatternMatching<T> patternMatching) {
+        private DelegateChainTo(PatternMatching<T> patternMatching) {
             this.patternMatching = patternMatching;
         }
 
@@ -67,15 +67,15 @@ public final class PatternMatching<TInput> {
                     new PatternMatching<>(input, new FoundMatchingRule<>(nextMatchingRuleType, operation));
 
             return operation != null
-                    ? new DelegateChain<>(newPatternMatching)
-                    : new DelegateChain<>(PatternMatching.this);
+                    ? new DelegateChainTo<>(newPatternMatching)
+                    : new DelegateChainTo<>(PatternMatching.this);
         }
     }
 
     private final class NoBetterMatch implements MatchingType<TInput> {
         @Override
         public <R> MatchingChain<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return new DelegateChain<>(PatternMatching.this);
+            return new DelegateChainTo<>(PatternMatching.this);
         }
     }
 
