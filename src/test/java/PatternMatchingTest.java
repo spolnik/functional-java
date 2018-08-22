@@ -27,7 +27,7 @@ public class PatternMatchingTest {
 
     @Test
     public void executes_operations_in_lazy_mode() {
-        PatternMatching.ExecuteOperation<String, Object> operation = PatternMatching.when("abc")
+        PatternMatching.Operation<String, Object> operation = PatternMatching.when("abc")
                 .is(String.class).thenReturn(s -> {
                     throw new RuntimeException("lazy one!");
                 });

@@ -3,7 +3,6 @@ package io.functional;
 import java.util.function.Function;
 
 public final class PatternMatching<TInput> {
-
     private final TInput input;
     private final MatchingRule<TInput, ?> matchingRule;
 
@@ -13,13 +12,13 @@ public final class PatternMatching<TInput> {
     }
 
     public static <TInput> PatternMatching<TInput> when(TInput input) {
-        return new PatternMatching<>(input, new MatchingRule<>());
+        return new PatternMatching<>(input, new MatchingRule<>(null, null));
     }
 
     public TypeChecking<TInput> is(Class<? super TInput> type) {
         return type.isAssignableFrom(input.getClass())
-                ? new MatchFound<>(this, type, input)
-                : new NoMatch<>(this);
+                ? new MatchFound(type)
+                : new NoMatch();
     }
 
     private Object execute() {
@@ -31,19 +30,18 @@ public final class PatternMatching<TInput> {
     }
 
     public interface TypeChecking<T> {
-        <R> ExecuteOperation<T, R> thenReturn(Function<T, R> operation);
+        <R> Operation<T, R> thenReturn(Function<T, R> operation);
     }
 
-    public interface ExecuteOperation<T, R> {
+    public interface Operation<T, R> {
         TypeChecking<T> is(Class<? super T> type);
         R execute();
     }
 
-    private final static class DelegateExecuteOperation<T, R> implements ExecuteOperation<T, R> {
-
+    private final class DelegateOperation<T, R> implements Operation<T, R> {
         private final PatternMatching<T> patternMatching;
 
-        private DelegateExecuteOperation(PatternMatching<T> patternMatching) {
+        private DelegateOperation(PatternMatching<T> patternMatching) {
             this.patternMatching = patternMatching;
         }
 
@@ -59,66 +57,40 @@ public final class PatternMatching<TInput> {
         }
     }
 
-    private final static class MatchFound<T> implements TypeChecking<T> {
+    private final class MatchFound implements TypeChecking<TInput> {
+        private final Class<? super TInput> newType;
 
-        private final PatternMatching<T> patternMatching;
-        private final Class<? super T> newType;
-        private final T input;
-
-        MatchFound(PatternMatching<T> patternMatching, Class<? super T> newType, T input) {
-            this.patternMatching = patternMatching;
+        MatchFound(Class<? super TInput> newType) {
             this.newType = newType;
-            this.input = input;
         }
 
         @Override
-        public <R> ExecuteOperation<T, R> thenReturn(Function<T, R> operation) {
-
+        public <R> Operation<TInput, R> thenReturn(Function<TInput, R> operation) {
             return shouldChooseNewMatchingRule()
-                    ? new DelegateExecuteOperation<>(patternMatchingWithNewMatchingRule(operation))
-                    : new DelegateExecuteOperation<>(patternMatching);
-
-        }
-
-        private <R> PatternMatching<T> patternMatchingWithNewMatchingRule(Function<T, R> operation) {
-            return new PatternMatching<>(input, new MatchingRule<>(newType, operation));
+                    ? new DelegateOperation<>(new PatternMatching<>(input, new MatchingRule<>(newType, operation)))
+                    : new DelegateOperation<>(PatternMatching.this);
         }
 
         private boolean shouldChooseNewMatchingRule() {
-            if (patternMatching.matchingRule.isEmpty()) {
+            if (matchingRule.isEmpty()) {
                 return true;
             }
 
-            return patternMatching.matchingRule.currentType != newType &&
-                    isNewTypeParentOfCurrentType(patternMatching.matchingRule.currentType);
-        }
-
-        private boolean isNewTypeParentOfCurrentType(Class<? super T> currentType) {
-            return newType.isAssignableFrom(currentType);
+            return matchingRule.currentType != newType &&
+                    newType.isAssignableFrom(matchingRule.currentType);
         }
     }
 
-    private final static class NoMatch<T> implements TypeChecking<T> {
-
-        private final PatternMatching<T> patternMatching;
-
-        NoMatch(PatternMatching<T> patternMatching) {
-            this.patternMatching = patternMatching;
-        }
-
+    private final class NoMatch implements TypeChecking<TInput> {
         @Override
-        public <R> ExecuteOperation<T, R> thenReturn(Function<T, R> operation) {
-            return new DelegateExecuteOperation<>(patternMatching);
+        public <R> Operation<TInput, R> thenReturn(Function<TInput, R> operation) {
+            return new DelegateOperation<>(PatternMatching.this);
         }
     }
 
     private final static class MatchingRule<T, R> {
         private final Class<? super T> currentType;
         private final Function<T, R> operation;
-
-        MatchingRule() {
-            this(null, null);
-        }
 
         MatchingRule(Class<? super T> currentType, Function<T, R> operation) {
             this.currentType = currentType;
