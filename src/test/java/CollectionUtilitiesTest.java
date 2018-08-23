@@ -116,6 +116,13 @@ public class CollectionUtilitiesTest {
         assertThat(reversed).isEqualTo(list(3, 2, 1));
     }
 
+    @Test
+    public void prepend_list() {
+        List<Integer> result = prepend(1, list(2, 3));
+
+        assertThat(result).isEqualTo(list(1, 2, 3));
+    }
+
     @SuppressWarnings("all")
     @Parameters(method = "lists")
     @Test(expected = UnsupportedOperationException.class)

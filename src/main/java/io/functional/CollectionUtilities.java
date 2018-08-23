@@ -67,13 +67,11 @@ public class CollectionUtilities {
     }
 
     public static <T> List<T> reverse(List<T> list) {
-        ArrayList<T> reversed = new ArrayList<>();
+        return foldLeft(list, list(), x -> y -> prepend(y, x));
+    }
 
-        for (int i = list.size() - 1; i >= 0 ; i--) {
-            reversed.add(list.get(i));
-        }
-
-        return list(reversed);
+    public static <T> List<T> prepend(T t, List<T> list) {
+        return foldLeft(list, list(t), a -> b -> append(a, b));
     }
 
     private static <T> List<T> copy(List<T> list) {
