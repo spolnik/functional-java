@@ -13,7 +13,8 @@ dependencies {
 
     testCompile 'junit:junit:4.12',
             'org.assertj:assertj-core:3.11.0',
-            'org.spockframework:spock-core:1.1-groovy-2.4'
+            'org.spockframework:spock-core:1.1-groovy-2.4',
+            'pl.pragmatists:JUnitParams:1.1.1'
 }
 
 
