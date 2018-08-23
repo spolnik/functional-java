@@ -54,7 +54,7 @@ public class CollectionUtilitiesTest {
     @Test
     public void tail_list() {
         List<String> result = tail(list("item", "item2", "item3"));
-        assertThat(result).hasSameElementsAs(list("item2", "item3"));
+        assertThat(result).isEqualTo(list("item2", "item3"));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -65,7 +65,7 @@ public class CollectionUtilitiesTest {
     @Test
     public void append_to_list() {
         List<String> result = append(list("item", "item2"), "item3");
-        assertThat(result).hasSameElementsAs(list("item", "item2", "item3"));
+        assertThat(result).isEqualTo(list("item", "item2", "item3"));
     }
 
     @Test
@@ -107,6 +107,13 @@ public class CollectionUtilitiesTest {
 
     private String addIS(Integer i, String s) {
         return "(" + i + " + " + s + ")";
+    }
+
+    @Test
+    public void reverse_list() {
+        List<Integer> reversed = reverse(list(1, 2, 3));
+
+        assertThat(reversed).isEqualTo(list(3, 2, 1));
     }
 
     @SuppressWarnings("all")

@@ -61,13 +61,19 @@ public class CollectionUtilities {
     }
 
     public static <T, R> R foldRight(List<T> list, R identity, Function<T, Function<R, R>> f) {
-        R result = identity;
+        return list.isEmpty()
+                ? identity
+                : f.apply(head(list)).apply(foldRight(tail(list), identity, f));
+    }
 
-        for (int i = list.size(); i > 0; i--) {
-            result = f.apply(list.get(i - 1)).apply(result);
+    public static <T> List<T> reverse(List<T> list) {
+        ArrayList<T> reversed = new ArrayList<>();
+
+        for (int i = list.size() - 1; i >= 0 ; i--) {
+            reversed.add(list.get(i));
         }
 
-        return result;
+        return list(reversed);
     }
 
     private static <T> List<T> copy(List<T> list) {
