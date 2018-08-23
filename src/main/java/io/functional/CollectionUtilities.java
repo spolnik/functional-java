@@ -50,6 +50,15 @@ public class CollectionUtilities {
         return list(copy);
     }
 
+    public static <T, R> R fold(List<T> is, R identity, Function<R, Function<T, R>> f) {
+        R result = identity;
+        for (T item : is) {
+            result = f.apply(result).apply(item);
+        }
+
+        return result;
+    }
+
     private static <T> List<T> copy(List<T> list) {
         return list == null ? new ArrayList<>() : new ArrayList<>(list);
     }

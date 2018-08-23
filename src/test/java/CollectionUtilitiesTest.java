@@ -73,6 +73,13 @@ public class CollectionUtilitiesTest {
         assertThat(result).hasSameElementsAs(list("item3"));
     }
 
+    @Test
+    public void sum_via_list_fold() {
+        Long result = fold(list(1, 2, 3), 1L, x -> y -> x * y);
+
+        assertThat(result).isEqualTo(6L);
+    }
+
     @SuppressWarnings("all")
     @Parameters(method = "lists")
     @Test(expected = UnsupportedOperationException.class)
