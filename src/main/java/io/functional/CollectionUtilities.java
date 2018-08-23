@@ -50,10 +50,21 @@ public class CollectionUtilities {
         return list(copy);
     }
 
-    public static <T, R> R fold(List<T> is, R identity, Function<R, Function<T, R>> f) {
+    public static <T, R> R foldLeft(List<T> list, R identity, Function<R, Function<T, R>> f) {
         R result = identity;
-        for (T item : is) {
+
+        for (T item : list) {
             result = f.apply(result).apply(item);
+        }
+
+        return result;
+    }
+
+    public static <T, R> R foldRight(List<T> list, R identity, Function<T, Function<R, R>> f) {
+        R result = identity;
+
+        for (int i = list.size(); i > 0; i--) {
+            result = f.apply(list.get(i - 1)).apply(result);
         }
 
         return result;

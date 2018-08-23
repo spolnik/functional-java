@@ -1,3 +1,4 @@
+import io.functional.Function;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Test;
@@ -75,9 +76,37 @@ public class CollectionUtilitiesTest {
 
     @Test
     public void sum_via_list_fold() {
-        Long result = fold(list(1, 2, 3), 1L, x -> y -> x * y);
+        Long result = foldLeft(list(1, 2, 3), 1L, x -> y -> x * y);
 
         assertThat(result).isEqualTo(6L);
+    }
+
+    @Test
+    public void left_fold_brackets() {
+        List<Integer> list = list(1, 2, 3, 4, 5);
+        String identity = "0";
+
+        String result = foldLeft(list, identity, x -> y -> addSI(x, y));
+
+        assertThat(result).isEqualTo("(((((0 + 1) + 2) + 3) + 4) + 5)");
+    }
+
+    private String addSI(String s, Integer i) {
+        return "(" + s + " + " + i + ")";
+    }
+
+    @Test
+    public void right_fold_brackets() {
+        List<Integer> list = list(1, 2, 3, 4, 5);
+        String identity = "0";
+
+        String result = foldRight(list, identity, x -> y -> addIS(x, y));
+
+        assertThat(result).isEqualTo("(1 + (2 + (3 + (4 + (5 + 0)))))");
+    }
+
+    private String addIS(Integer i, String s) {
+        return "(" + i + " + " + s + ")";
     }
 
     @SuppressWarnings("all")
