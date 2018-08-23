@@ -5,6 +5,8 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
+import static io.functional.CollectionUtilities.copy;
+import static io.functional.CollectionUtilities.head;
 import static io.functional.CollectionUtilities.list;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,6 +41,25 @@ public class CollectionUtilitiesTest {
         assertThat(varargList.get(1)).isEqualTo("item2");
     }
 
+    @Test
+    public void head_list() {
+        String result = head(list("item", "item2"));
+        assertThat(result).isEqualTo("item");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void head_of_empty_list() {
+        head(list());
+    }
+
+    @Test
+    public void copy_list() {
+        List<String> list = list("item", "item2");
+        List<String> copy = copy(list);
+
+        assertThat(copy).hasSameElementsAs(list);
+    }
+
     @SuppressWarnings("all")
     @Parameters(method = "lists")
     @Test(expected = UnsupportedOperationException.class)
@@ -52,7 +73,8 @@ public class CollectionUtilitiesTest {
                 list(),
                 list(new Object()),
                 list(new Object(), new Object()),
-                list(list(new Object()))
+                list(list(new Object())),
+                copy(list(new Object()))
         };
     }
 }
