@@ -34,6 +34,16 @@ public class CollectionUtilities {
         return list.get(0);
     }
 
+    public static <T> List<T> tail(List<T> list) {
+        if (list.size() == 0) {
+            throw new IllegalStateException("head of empty list");
+        }
+
+        List<T> tail = new ArrayList<>(list);
+        tail.remove(0);
+        return list(tail);
+    }
+
     public static <T> List<T> copy(List<T> list) {
         return list(new ArrayList<>(list));
     }

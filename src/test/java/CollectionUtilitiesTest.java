@@ -5,9 +5,7 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
-import static io.functional.CollectionUtilities.copy;
-import static io.functional.CollectionUtilities.head;
-import static io.functional.CollectionUtilities.list;
+import static io.functional.CollectionUtilities.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnitParamsRunner.class)
@@ -50,6 +48,17 @@ public class CollectionUtilitiesTest {
     @Test(expected = IllegalStateException.class)
     public void head_of_empty_list() {
         head(list());
+    }
+
+    @Test
+    public void tail_list() {
+        List<String> result = tail(list("item", "item2", "item3"));
+        assertThat(result).hasSameElementsAs(list("item2", "item3"));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void tail_of_empty_list() {
+        tail(list());
     }
 
     @Test
