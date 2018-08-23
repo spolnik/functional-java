@@ -61,6 +61,18 @@ public class CollectionUtilitiesTest {
         tail(list());
     }
 
+    @Test
+    public void append_to_list() {
+        List<String> result = append(list("item", "item2"), "item3");
+        assertThat(result).hasSameElementsAs(list("item", "item2", "item3"));
+    }
+
+    @Test
+    public void append_to_null_list() {
+        List<String> result = append(null, "item3");
+        assertThat(result).hasSameElementsAs(list("item3"));
+    }
+
     @SuppressWarnings("all")
     @Parameters(method = "lists")
     @Test(expected = UnsupportedOperationException.class)

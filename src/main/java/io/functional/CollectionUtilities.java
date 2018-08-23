@@ -44,7 +44,13 @@ public class CollectionUtilities {
         return list(tail);
     }
 
+    public static <T> List<T> append(List<T> list, T item) {
+        List<T> copy = copy(list);
+        copy.add(item);
+        return list(copy);
+    }
+
     private static <T> List<T> copy(List<T> list) {
-        return new ArrayList<>(list);
+        return list == null ? new ArrayList<>() : new ArrayList<>(list);
     }
 }
