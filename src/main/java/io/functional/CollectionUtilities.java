@@ -39,12 +39,12 @@ public class CollectionUtilities {
             throw new IllegalStateException("head of empty list");
         }
 
-        List<T> tail = new ArrayList<>(list);
+        List<T> tail = copy(list);
         tail.remove(0);
         return list(tail);
     }
 
-    public static <T> List<T> copy(List<T> list) {
-        return list(new ArrayList<>(list));
+    private static <T> List<T> copy(List<T> list) {
+        return new ArrayList<>(list);
     }
 }

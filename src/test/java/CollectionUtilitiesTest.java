@@ -61,14 +61,6 @@ public class CollectionUtilitiesTest {
         tail(list());
     }
 
-    @Test
-    public void copy_list() {
-        List<String> list = list("item", "item2");
-        List<String> copy = copy(list);
-
-        assertThat(copy).hasSameElementsAs(list);
-    }
-
     @SuppressWarnings("all")
     @Parameters(method = "lists")
     @Test(expected = UnsupportedOperationException.class)
@@ -82,8 +74,7 @@ public class CollectionUtilitiesTest {
                 list(),
                 list(new Object()),
                 list(new Object(), new Object()),
-                list(list(new Object())),
-                copy(list(new Object()))
+                list(list(new Object()))
         };
     }
 }
