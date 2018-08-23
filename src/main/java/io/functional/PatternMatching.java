@@ -12,36 +12,33 @@ public final class PatternMatching<TInput> {
     }
 
     public static <TInput> PatternMatching<TInput> when(TInput input) {
-        return new PatternMatching<>(input, new MatchingRule<>(null, null));
+        return new PatternMatching<>(input, new MatchingRule<TInput, Object>() {});
     }
 
-    public MatchingType<TInput> is(Class<? super TInput> matchingRuleType) {
-        return matchingRuleType.isAssignableFrom(input.getClass())
-                ? new MatchFound(matchingRuleType)
-                : new NoMatch();
+    public MatchingType<TInput> is(Class<? super TInput> nextMatchingRuleType) {
+        return nextMatchingRuleType.isAssignableFrom(input.getClass()) &&
+                bestMatchingRule.isNotBetterMatchThan(nextMatchingRuleType)
+                ? new BetterMatchFound(nextMatchingRuleType)
+                : this::noMatch;
+    }
+
+    @SuppressWarnings("all")
+    private <R> MatchingChain<TInput, R> noMatch(Function<TInput, R> operation) {
+        return new DelegateChainTo<>(this);
     }
 
     private Object execute() {
-        if (bestMatchingRule.isEmpty()) {
-            throw new UnsupportedOperationException("You have to define at least one correct rule");
-        }
-
-        return bestMatchingRule.operation.apply(input);
+        return bestMatchingRule.execute();
     }
 
-    public interface MatchingType<T> {
-        <R> Transform<T, R> thenReturn(Function<T, R> operation);
-    }
-
-    public interface Transform<T, R> {
+    public interface MatchingChain<T, R> {
         MatchingType<T> is(Class<? super T> type);
         R execute();
     }
 
-    private final class DelegateOperation<T, R> implements Transform<T, R> {
+    private final class DelegateChainTo<T, R> implements MatchingChain<T, R> {
         private final PatternMatching<T> patternMatching;
-
-        private DelegateOperation(PatternMatching<T> patternMatching) {
+        private DelegateChainTo(PatternMatching<T> patternMatching) {
             this.patternMatching = patternMatching;
         }
 
@@ -55,50 +52,60 @@ public final class PatternMatching<TInput> {
         public R execute() {
             return (R) patternMatching.execute();
         }
+
     }
 
-    private final class MatchFound implements MatchingType<TInput> {
+    @FunctionalInterface
+    public interface MatchingType<T> {
+        <R> MatchingChain<T, R> thenReturn(Function<T, R> operation);
+    }
+
+    private final class BetterMatchFound implements MatchingType<TInput> {
         private final Class<? super TInput> nextMatchingRuleType;
 
-        MatchFound(Class<? super TInput> nextMatchingRuleType) {
+        BetterMatchFound(Class<? super TInput> nextMatchingRuleType) {
             this.nextMatchingRuleType = nextMatchingRuleType;
         }
 
         @Override
-        public <R> Transform<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return shouldChooseNewMatchingRule()
-                    ? new DelegateOperation<>(new PatternMatching<>(input, new MatchingRule<>(nextMatchingRuleType, operation)))
-                    : new DelegateOperation<>(PatternMatching.this);
-        }
+        public <R> MatchingChain<TInput, R> thenReturn(Function<TInput, R> operation) {
+            PatternMatching<TInput> newPatternMatching =
+                    new PatternMatching<>(input, new FoundMatchingRule<>(nextMatchingRuleType, operation));
 
-        private boolean shouldChooseNewMatchingRule() {
-            if (bestMatchingRule.isEmpty()) {
-                return true;
-            }
-
-            return bestMatchingRule.currentType != nextMatchingRuleType &&
-                    nextMatchingRuleType.isAssignableFrom(bestMatchingRule.currentType);
+            return operation != null
+                    ? new DelegateChainTo<>(newPatternMatching)
+                    : new DelegateChainTo<>(PatternMatching.this);
         }
     }
 
-    private final class NoMatch implements MatchingType<TInput> {
-        @Override
-        public <R> Transform<TInput, R> thenReturn(Function<TInput, R> operation) {
-            return new DelegateOperation<>(PatternMatching.this);
+    private interface MatchingRule<T, R> {
+        default R execute() {
+            throw new UnsupportedOperationException("You have to define at least one correct rule");
+        }
+
+        default boolean isNotBetterMatchThan(Class<? super T> nextMatchingRuleType) {
+            return true;
         }
     }
 
-    private final static class MatchingRule<T, R> {
-        private final Class<? super T> currentType;
-        private final Function<T, R> operation;
+    private final class FoundMatchingRule<R> implements MatchingRule<TInput, R> {
+        private final Class<? super TInput> currentType;
+        private final Function<TInput, R> operation;
 
-        MatchingRule(Class<? super T> currentType, Function<T, R> operation) {
+        FoundMatchingRule(Class<? super TInput> currentType, Function<TInput, R> operation) {
             this.currentType = currentType;
             this.operation = operation;
         }
 
-        boolean isEmpty() {
-            return currentType == null || operation == null;
+        @Override
+        public R execute() {
+            return this.operation.apply(input);
+        }
+
+        @Override
+        public boolean isNotBetterMatchThan(Class<? super TInput> nextMatchingRuleType) {
+            return currentType != nextMatchingRuleType &&
+                    nextMatchingRuleType.isAssignableFrom(currentType);
         }
     }
 }
